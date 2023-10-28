@@ -208,44 +208,32 @@ public class Unsafe {
             return clazz.cast(getUnsafe().allocateInstance(clazz));
         }
 
-        public static long sizeOf(Class<?> clazz) {
+        public static long sizeOf(Class<?> c) {
             long maximumOffset = 0;
-            do {
-                for (Field f : clazz.getDeclaredFields()) {
-                    if (!Modifier.isStatic(f.getModifiers())) {
-                        if (maximumOffset < getUnsafe().objectFieldOffset(f)) {
-                            maximumOffset = getUnsafe().objectFieldOffset(f);
-                        }
-                    }
-                }
-            } while ((clazz = clazz.getSuperclass()) != null);
-            return maximumOffset + 8;
-        }
-
-        public static long sizeOf(Object o) {
             HashSet<Field> fields = new HashSet<>();
-            Class<?> c = o.getClass();
-
-
             while (c != Object.class) {
-                for (Field f : c.getDeclaredFields()) {
+                Field[] df = c.getDeclaredFields();
+                for (Field f : df) {
                     if ((f.getModifiers() & Modifier.STATIC) == 0) {
-                        fields.add(f);
+                       fields.add(f);
                     }
                 }
                 c = c.getSuperclass();
             }
 
-            // get offset
-            long maxSize = 0;
             for (Field f : fields) {
                 long offset = getUnsafe().objectFieldOffset(f);
-                if (offset > maxSize) {
-                    maxSize = offset;
+                if (offset > maximumOffset) {
+                    maximumOffset = offset;
                 }
             }
+            //return maximumOffset + 8;
+            return ((maximumOffset/8) + 1) * 8;   // padding
+        }
 
-            return ((maxSize/8) + 1) * 8;   // padding
+        public static long sizeOf(Object o) {
+            return sizeOf(o.getClass());
+            //return ((maximumOffset/8) + 1) * 8;   // padding
         }
 
 

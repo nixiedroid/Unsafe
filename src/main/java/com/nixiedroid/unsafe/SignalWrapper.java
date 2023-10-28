@@ -1,7 +1,7 @@
 package com.nixiedroid.unsafe;
 
 import sun.misc.Signal;
-
+@SuppressWarnings("unused")
 public final class SignalWrapper {
     /**
      * Reflection proof private constructor

@@ -3,10 +3,23 @@ plugins {
 }
 
 group = 'com.nixiedroid'
-version = '1.0-SNAPSHOT'
+version = '1'
+archivesBaseName = 'Unsafe'
 
 repositories {
     mavenCentral()
+}
+jar {
+    manifest {
+        attributes([
+                'Main-Class': 'com.nixiedroid.unsafe.Application',
+                'Premain-class': 'com.nixiedroid.unsafe.Premain'
+        ])
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 dependencies {

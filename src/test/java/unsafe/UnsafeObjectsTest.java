@@ -84,6 +84,15 @@ class UnsafeObjectsTest {
         assertEquals(2, p.getSum());
     }
 
+    @Test
+    public void sizeOf(){
+        Person p = new Person(20,"gg");
+        assertEquals(40,Unsafe.Objects.sizeOf(p));
+        assertEquals(40,Unsafe.Objects.sizeOf(p));
+    }
+    static class Animnal {
+
+    }
     static class Person {
         static int somethingUndiscovered = 96;
         final String name = "Tom";
