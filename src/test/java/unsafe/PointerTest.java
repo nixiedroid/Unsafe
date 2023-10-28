@@ -100,8 +100,4 @@ class PointerTest {
         assertEquals(doubleClone.hashCode(),pClone.hashCode());
         assertEquals(p.hashCode(),doubleClone.hashCode());
     }
-
-    @Test
-    void testToString() {
-    }
 }

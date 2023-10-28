@@ -6,9 +6,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NativeChunkTest {
-
-    static byte validValue = (byte) 42;
-    static int size = 4;
+    final static byte validValue = (byte) 42;
+    final static int size = 4;
     @Test
     public void createArray(){
         NativeChunk canary = new NativeChunk(size);

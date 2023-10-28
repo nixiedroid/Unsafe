@@ -108,7 +108,7 @@ public class Unsafe {
             if (bytes <= 0) throw new IllegalArgumentException("Realloc size is wrong");
             Pointer.validate(pointer);
             if (allocated.containsKey(pointer)) {
-                if (allocated.get(pointer).size()<=bytes) throw new IllegalArgumentException("Shrinking memory size is not posstible");
+                if (allocated.get(pointer).size()<=bytes) throw new IllegalArgumentException("Shrinking memory size is not possible");
                 getUnsafe().freeMemory(pointer.address());
             }
             else {
@@ -195,16 +195,6 @@ public class Unsafe {
 
         public long address() {
             return address;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return super.equals(o);
-        }
-
-        @Override
-        public int hashCode() {
-            return super.hashCode();
         }
 
         @Override

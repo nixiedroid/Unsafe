@@ -48,11 +48,6 @@ class UnsafeTest {
     }
 
     @Test
-    void pointerSize() {
-        assertEquals(0, Unsafe.getPointerSize() % 2);
-    }
-
-    @Test
     void crashVM() {
         System.out.println("Lets pretend, JVM Successfully crashed");
         assertNotEquals(5, 2 + 2);

@@ -28,6 +28,7 @@ class UtilTest {
         assertThrows(UnsupportedOperationException.class, this::createUtilityObjectReflection);
     }
 
+    @SuppressWarnings("ConstantValue")
     @Test
     void performGc() {
         Object o = new Object();

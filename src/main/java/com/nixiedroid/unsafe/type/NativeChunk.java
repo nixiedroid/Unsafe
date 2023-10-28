@@ -2,7 +2,6 @@ package com.nixiedroid.unsafe.type;
 
 import com.nixiedroid.unsafe.Unsafe;
 import com.nixiedroid.unsafe.Unsafe.Pointer;
-import com.nixiedroid.unsafe.Util;
 
 public final class NativeChunk {
     private final int size;
@@ -26,6 +25,11 @@ public final class NativeChunk {
      * @param value byte value
      */
     public void set(int offset, byte value) {
+        validate(offset);
+        Unsafe.Memory.setByte(address, offset, value);
+
+    }
+    private void validate(int offset){
         if (offset >= size) {
             throw new IndexOutOfBoundsException("Offset " + offset + " is bigger than size " + size);
         }
@@ -35,8 +39,6 @@ public final class NativeChunk {
         if (isFreed) {
             throw new UnsupportedOperationException("Trying to use already freed bytearray");
         }
-        Unsafe.Memory.setByte(address, offset, value);
-
     }
     /**
      * Gets byte value of native array offset {@param offset}
@@ -44,15 +46,7 @@ public final class NativeChunk {
      */
 
     public byte get(int offset) {
-        if (offset >= size) {
-            throw new IndexOutOfBoundsException("Offset " + offset + " is bigger than size " + size);
-        }
-        if (offset < 0) {
-            throw new IndexOutOfBoundsException("Offset " + offset + " is lower than 0 ");
-        }
-        if (isFreed) {
-            throw new UnsupportedOperationException("Trying to use already freed bytearray");
-        }
+        validate(offset);
         return Unsafe.Memory.getByte(address, offset);
     }
     /**
@@ -84,14 +78,4 @@ public final class NativeChunk {
         return sb.append("]").toString();
     }
 
-    public static final class Window {
-        /**
-         * Reflection proof private constructor
-         */
-        private Window() {
-            Util.throwUtilityClassException();
-        }
-
-
-    }
 }
