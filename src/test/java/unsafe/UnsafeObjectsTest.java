@@ -1,9 +1,8 @@
 package unsafe;
 
 import com.nixiedroid.unsafe.Unsafe;
-import com.nixiedroid.unsafe.samples.animal.Lion;
-import org.junit.jupiter.api.Test;
 import com.nixiedroid.unsafe.samples.Person;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -13,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class UnsafeObjectsTest {
     private  void createUtilityObjectReflection() {
         try {
-            Constructor<Unsafe.Objects> constructor = ( Unsafe.Objects.class).getDeclaredConstructor();
+            Constructor<Unsafe> constructor = ( Unsafe.class).getDeclaredConstructor();
             constructor.setAccessible(true);
             constructor.newInstance();
             constructor.setAccessible(false);
@@ -65,34 +64,13 @@ class UnsafeObjectsTest {
         assertEquals(34, p.getSum());
     }
 
-    @Test
-    void serialiseTest(){
-        int containerSize = (int) Unsafe.Objects.sizeOf(Lion.class);
-        Unsafe.Pointer address = Unsafe.Memory.malloc(containerSize);
-        Lion c1 = new Lion(10, 10000L);
-        Lion c2 = new Lion(5, 1254L);
-        Lion newC1 = null;
-        Lion newC2 = null;
-        try {
-            Unsafe.Objects.place(c1, address.address());
-            Unsafe.Objects.place(c2, address.address() + containerSize);
 
-           newC1 = (Lion) Unsafe.Objects.read(Lion.class, address.address());
-           newC2 = (Lion) Unsafe.Objects.read(Lion.class, address.address() + containerSize);
-        } catch (Exception e) {
-            fail("Should not have thrown any exception: \n " + e);
-        }
-        assertNotNull(newC1);
-        assertNotNull(newC2);
-        assertEquals(c1, newC1);
-        assertEquals(c2, newC2);
-    }
 
     @Test
     public void createInstanceWithoutConstructor() {
         Person p = null;
         try {
-            p = Unsafe.Objects.createDummyInstance(Person.class);
+            p = Unsafe.createDummyInstance(Person.class);
         } catch (Exception e) {
             fail("Should not have thrown any exception : \n " + e);
         }
@@ -109,12 +87,6 @@ class UnsafeObjectsTest {
         assertEquals(2, p.getSum());
     }
 
-    @Test
-    public void sizeOf(){
-        Person p = new Person(20,"gg");
-        assertEquals(40,Unsafe.Objects.sizeOf(p));
-        assertEquals(40,Unsafe.Objects.sizeOf(p));
-    }
 
 
 }

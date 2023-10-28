@@ -45,15 +45,6 @@ class UtilTest {
         assertNull(ref.get());
     }
 
-    @Test
-    void testToString() {
-        assertEquals("12",Util.toString((byte) 0x12));
-    }
-
-    @Test
-    void testToString1() {
-        assertEquals("12, 34, 56, ab",Util.toString(new byte[]{0x12,0x34,0x56, (byte) 0xAB}));
-    }
 
     @Test
     void throwUtilityClassException() {
