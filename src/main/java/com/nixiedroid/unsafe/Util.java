@@ -4,6 +4,9 @@ import java.lang.ref.WeakReference;
 
 @SuppressWarnings("unused")
 public class Util {
+    /**
+     * Reflection proof private constructor
+     */
     private Util() {
         throwUtilityClassException();
     }
@@ -19,7 +22,7 @@ public class Util {
         } catch (InterruptedException ignored) {
         }
     }
-
+    @SuppressWarnings("UnusedAssignment")
     private static void performGcHalting(){
         Object o = new Object();
         WeakReference<Object> ref = new WeakReference<>(o);
@@ -29,7 +32,7 @@ public class Util {
         }
     }
 
-    @SuppressWarnings("UnusedAssignment")
+
     public static synchronized void performGc() {
         new Thread(Util::performGcHalting).start();
     }

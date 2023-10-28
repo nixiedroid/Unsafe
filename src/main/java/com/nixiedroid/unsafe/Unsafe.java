@@ -4,7 +4,9 @@ import com.nixiedroid.unsafe.type.Size;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 @SuppressWarnings("unused")
@@ -51,12 +53,14 @@ public class Unsafe {
             }
         }));
     }
-
+    /**
+     * Reflection proof private constructor
+     */
     private Unsafe() {
         Util.throwUtilityClassException();
     }
 
-    private static sun.misc.Unsafe getUnsafe() {
+    public static sun.misc.Unsafe getUnsafe() {
         return theUnsafestThingyInJava;
     }
 
@@ -81,6 +85,9 @@ public class Unsafe {
     }
 
     public static class Memory {
+        /**
+         * Reflection proof private constructor
+         */
         private Memory() {
             Util.throwUtilityClassException();
         }
@@ -175,10 +182,18 @@ public class Unsafe {
     }
 
     public static class Objects {
+        /**
+         * Reflection proof private constructor
+         */
         private Objects() {
             Util.throwUtilityClassException();
         }
 
+        /**
+         *
+         * @param arrayClass Class with array
+         * @return offset of array of {@param arrayClass}
+         */
         public static int getArrayOffset(Class<?> arrayClass) {
             return getUnsafe().arrayBaseOffset(arrayClass);
         }
@@ -191,6 +206,46 @@ public class Unsafe {
          */
         public static <T> T createDummyInstance(Class<T> clazz) throws InstantiationException {
             return clazz.cast(getUnsafe().allocateInstance(clazz));
+        }
+
+        public static long sizeOf(Class<?> clazz) {
+            long maximumOffset = 0;
+            do {
+                for (Field f : clazz.getDeclaredFields()) {
+                    if (!Modifier.isStatic(f.getModifiers())) {
+                        if (maximumOffset < getUnsafe().objectFieldOffset(f)) {
+                            maximumOffset = getUnsafe().objectFieldOffset(f);
+                        }
+                    }
+                }
+            } while ((clazz = clazz.getSuperclass()) != null);
+            return maximumOffset + 8;
+        }
+
+        public static long sizeOf(Object o) {
+            HashSet<Field> fields = new HashSet<>();
+            Class<?> c = o.getClass();
+
+
+            while (c != Object.class) {
+                for (Field f : c.getDeclaredFields()) {
+                    if ((f.getModifiers() & Modifier.STATIC) == 0) {
+                        fields.add(f);
+                    }
+                }
+                c = c.getSuperclass();
+            }
+
+            // get offset
+            long maxSize = 0;
+            for (Field f : fields) {
+                long offset = getUnsafe().objectFieldOffset(f);
+                if (offset > maxSize) {
+                    maxSize = offset;
+                }
+            }
+
+            return ((maxSize/8) + 1) * 8;   // padding
         }
 
 

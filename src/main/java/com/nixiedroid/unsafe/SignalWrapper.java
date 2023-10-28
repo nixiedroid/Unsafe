@@ -3,6 +3,9 @@ package com.nixiedroid.unsafe;
 import sun.misc.Signal;
 
 public final class SignalWrapper {
+    /**
+     * Reflection proof private constructor
+     */
     private SignalWrapper() {
         Util.throwUtilityClassException();
     }

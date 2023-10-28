@@ -11,9 +11,9 @@ import java.lang.reflect.Method;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UtilTest {
-    private <T> void createUtilityObjectReflection(Class<T> clazz) {
+    private void createUtilityObjectReflection() {
         try {
-            Constructor<T> constructor = clazz.getDeclaredConstructor();
+            Constructor<Util> constructor = (Util.class).getDeclaredConstructor();
             constructor.setAccessible(true);
             constructor.newInstance();
             constructor.setAccessible(false);
@@ -25,7 +25,7 @@ class UtilTest {
     }
     @Test
     void constructor(){
-        assertThrows(UnsupportedOperationException.class,  () ->createUtilityObjectReflection(Util.class));
+        assertThrows(UnsupportedOperationException.class, this::createUtilityObjectReflection);
     }
 
     @Test

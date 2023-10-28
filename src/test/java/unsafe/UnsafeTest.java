@@ -8,7 +8,7 @@ import java.lang.reflect.Field;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class UnsafeTest {
+class UnsafeTest {
     @Test
     void unsafeInstanceTest() {
         sun.misc.Unsafe unsafe = null;

@@ -1,23 +1,36 @@
 package com.nixiedroid.unsafe;
 
-import com.nixiedroid.unsafe.type.NativeChunk;
-
 public class Application {
 
     public static void main(String[] args) {
-        System.out.println("Pointer size = " + Unsafe.getPointerSize());
-        NativeChunk array = new NativeChunk(Integer.MAX_VALUE);
-        array.set(0, (byte) 0x5);
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 10; i++) {
-            sb.append(Util.toString(array.get(i)));
-            sb.append(" - ");
-            sb.append(i);
-            sb.append("\n");
+       Person p = new Person(25,"Tom");
+       long objPo;
+        System.out.println(Unsafe.Objects.sizeOf(p));
+        System.out.println(Unsafe.Objects.sizeOf(Person.class));
+        System.out.println(Unsafe.Objects.sizeOf(p.getClass()));
+    }
+    static class Person {
+        static int somethingUndiscovered = 96;
+        final String name = "Tom";
+        final int amountOfChildren = 2;
+        final boolean isLikesDogs = true;
+        String surname;
+        int age;
+        int amountOfDogs = 3;
+        int amountOfCats;
+        boolean isLikesCats = true;
+
+        {
+            amountOfCats = 4;
         }
-        System.out.println(sb);
-        Util.halt(10000);
-        array.free();
+
+        public Person(int age, String surname) {
+            this.age = age;
+            this.surname = surname;
+        }
+        public int getSum() {
+            return age + amountOfCats + amountOfDogs + amountOfChildren;
+        }
     }
 
 }

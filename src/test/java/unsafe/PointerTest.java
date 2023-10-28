@@ -60,6 +60,7 @@ class PointerTest {
         assertThrows(NullPointerException.class,()-> Pointer.validate(getPointer(0)));
     }
 
+    @SuppressWarnings("UnnecessaryLocalVariable")
     @Test
     void testEquals() {
         Pointer first = getPointer(42);
@@ -80,6 +81,7 @@ class PointerTest {
         assertEquals(p,doubleClone);
     }
 
+    @SuppressWarnings("UnnecessaryLocalVariable")
     @Test
     void testHashCode() {
         assertNotEquals(getPointer(1).hashCode(),getPointer(1).hashCode());

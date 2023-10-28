@@ -9,9 +9,9 @@ import java.lang.reflect.InvocationTargetException;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UnsafeObjectsTest {
-    private <T> void createUtilityObjectReflection(Class<T> clazz) {
+    private  void createUtilityObjectReflection() {
         try {
-            Constructor<T> constructor = clazz.getDeclaredConstructor();
+            Constructor<Unsafe.Objects> constructor = ( Unsafe.Objects.class).getDeclaredConstructor();
             constructor.setAccessible(true);
             constructor.newInstance();
             constructor.setAccessible(false);
@@ -23,7 +23,7 @@ class UnsafeObjectsTest {
     }
     @Test
     void constructor(){
-        assertThrows(UnsupportedOperationException.class,  () ->createUtilityObjectReflection(Unsafe.Objects.class));
+        assertThrows(UnsupportedOperationException.class, this::createUtilityObjectReflection);
     }
     @Test
     public void createInstanceUsingDefaultConstructor() {

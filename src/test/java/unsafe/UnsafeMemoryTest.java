@@ -10,9 +10,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class UnsafeMemoryTest {
-    private <T> void createUtilityObjectReflection(Class<T> clazz) {
+    private void createUtilityObjectReflection() {
         try {
-            Constructor<T> constructor = clazz.getDeclaredConstructor();
+            Constructor<Memory> constructor = Memory.class.getDeclaredConstructor();
             constructor.setAccessible(true);
             constructor.newInstance();
             constructor.setAccessible(false);
@@ -22,53 +22,64 @@ class UnsafeMemoryTest {
             fail("Should not have thrown any exception: \n " + e);
         }
     }
+
     @Test
-    void constructor(){
-        assertThrows(UnsupportedOperationException.class,  () ->createUtilityObjectReflection(Memory.class));
+    void constructor() {
+        assertThrows(UnsupportedOperationException.class, this::createUtilityObjectReflection);
     }
 
     @Test
     void malloc() {
-
+        fail();
     }
 
     @Test
     void fill() {
+        fail();
     }
 
     @Test
     void empty() {
+        fail();
     }
 
     @Test
     void realloc() {
+        fail();
     }
 
     @Test
     void calloc() {
+        fail();
     }
 
     @Test
     void memcpy() {
+        fail();
     }
 
     @Test
     void testMemcpy() {
+        fail();
     }
 
     @Test
     void getByte() {
+        fail();
     }
 
     @Test
     void testGetByte() {
+        fail();
     }
 
     @Test
     void setByte() {
+        fail();
     }
 
     @Test
     void testSetByte() {
+        fail();
     }
 }
