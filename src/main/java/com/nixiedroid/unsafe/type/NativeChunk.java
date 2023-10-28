@@ -69,7 +69,7 @@ public final class NativeChunk {
             throw new UnsupportedOperationException("Trying to free already freed bytearray");
         }
         isFreed = true;
-        Unsafe.Memory.calloc(address);
+        Unsafe.Memory.free(address);
     }
 
     @Override

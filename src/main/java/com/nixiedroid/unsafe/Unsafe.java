@@ -5,14 +5,12 @@ import com.nixiedroid.unsafe.type.Size;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public class Unsafe {
     private static final sun.misc.Unsafe theUnsafestThingyInJava;
-    private static final Map<Pointer, Size> allocated;
+    private static final ArrayList<Pointer> allocated;
 
     static {
         sun.misc.Unsafe unsafe;
@@ -34,25 +32,23 @@ public class Unsafe {
             throw new RuntimeException(e);
         }
         theUnsafestThingyInJava = unsafe;
-        allocated = new HashMap<>();
+        allocated = new ArrayList<>();
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
             public void run() {
-                int size = 0;
                 int amount = 0;
-                for (Map.Entry<Pointer, Size> entry : allocated.entrySet()) {
+                for (Pointer p : allocated) {
                     amount++;
-                    size += entry.getValue().size();
-                    Memory.calloc(entry.getKey());
+                    Memory.free(p);
                 }
                 if (amount != 0) {
                     System.out.println("You are a terrible person");
                     System.out.println("Freed " + amount + " pointers");
-                    System.out.println("Saved " + size + " bytes from leaking");
                 }
             }
         }));
     }
+
     /**
      * Reflection proof private constructor
      */
@@ -70,6 +66,7 @@ public class Unsafe {
     public static void crashVM() {
         getUnsafe().getByte(0);
     }
+
 
     /**
      * throw Exception without requiring to add throws to class
@@ -95,7 +92,7 @@ public class Unsafe {
         public static Pointer malloc(int bytes) {
             if (bytes <= 0) throw new IllegalArgumentException("Malloc size is wrong");
             Pointer p = new Pointer(getUnsafe().allocateMemory(bytes));
-            allocated.put(p, new Size(bytes));
+            allocated.add(p);
             return p;
         }
 
@@ -106,27 +103,33 @@ public class Unsafe {
         public static void empty(Pointer p, int size) {
             fill(p, size, (byte) 0);
         }
+        private static boolean removeFromAllocated(final Pointer pointer){
+            for (int i = 0; i < allocated.size(); i++) {
+                if (allocated.get(i) == pointer) {
+                    allocated.remove(i);
+                    return true;
+                }
+            }
+            return false;
+        }
 
         public static Pointer realloc(Pointer pointer, int bytes) {
             if (bytes <= 0) throw new IllegalArgumentException("Realloc size is wrong");
             Pointer.validate(pointer);
-            if (allocated.remove(pointer) != null) {
+            if (removeFromAllocated(pointer)) {
                 getUnsafe().freeMemory(pointer.address());
             } else {
                 throw new IllegalArgumentException("Trying to reallocate dangling pointer");
             }
-            if (allocated.get(pointer).size() >= bytes) {
-                throw new IllegalArgumentException("Trying to shrink allocated size");
-            }
             Pointer p = new Pointer(getUnsafe().reallocateMemory(pointer.address(), bytes));
-            allocated.put(p, new Size(bytes));
+            allocated.add(p);
             return p;
         }
 
         @SuppressWarnings("SpellCheckingInspection")
-        public static synchronized void calloc(Pointer pointer) {
+        public static synchronized void free(Pointer pointer) {
             Pointer.validate(pointer);
-            if (allocated.remove(pointer) != null) {
+            if (allocated.remove(pointer)) {
                 getUnsafe().freeMemory(pointer.address());
             } else {
                 throw new IllegalArgumentException("Trying to free dangling pointer");
@@ -182,6 +185,7 @@ public class Unsafe {
     }
 
     public static class Objects {
+
         /**
          * Reflection proof private constructor
          */
@@ -190,7 +194,6 @@ public class Unsafe {
         }
 
         /**
-         *
          * @param arrayClass Class with array
          * @return offset of array of {@param arrayClass}
          */
@@ -215,7 +218,7 @@ public class Unsafe {
                 Field[] df = c.getDeclaredFields();
                 for (Field f : df) {
                     if ((f.getModifiers() & Modifier.STATIC) == 0) {
-                       fields.add(f);
+                        fields.add(f);
                     }
                 }
                 c = c.getSuperclass();
@@ -228,7 +231,7 @@ public class Unsafe {
                 }
             }
             //return maximumOffset + 8;
-            return ((maximumOffset/8) + 1) * 8;   // padding
+            return ((maximumOffset / 8) + 1) * 8;   // padding
         }
 
         public static long sizeOf(Object o) {
@@ -236,6 +239,80 @@ public class Unsafe {
             //return ((maximumOffset/8) + 1) * 8;   // padding
         }
 
+        public static void place(Object o, long address) throws Exception {
+            Class<?> clazz = o.getClass();
+            do {
+                for (Field f : clazz.getDeclaredFields()) {
+                    if (!Modifier.isStatic(f.getModifiers())) {
+                        long offset = getUnsafe().objectFieldOffset(f);
+                        if (f.getType() == long.class) {
+                            getUnsafe().putLong(address + offset, getUnsafe().getLong(o, offset));
+                        } else if (f.getType() == int.class) {
+                            getUnsafe().putInt(address + offset, getUnsafe().getInt(o, offset));
+
+                        }  else {
+                            throw new UnsupportedOperationException("p " + f.getType());
+                        }
+                    }
+                }
+            } while ((clazz = clazz.getSuperclass()) != null);
+        }
+
+        public static Object read(Class<?> clazz, long address) throws Exception {
+            Object instance = getUnsafe().allocateInstance(clazz);
+            do {
+                for (Field f : clazz.getDeclaredFields()) {
+                    if (!Modifier.isStatic(f.getModifiers())) {
+                        long offset = getUnsafe().objectFieldOffset(f);
+                        if (f.getType() == long.class) {
+                            getUnsafe().putLong(instance, offset, getUnsafe().getLong(address + offset));
+                        } else if (f.getType() == int.class) {
+                            getUnsafe().putLong(instance, offset, getUnsafe().getInt(address + offset));
+                        } else {
+                            throw new UnsupportedOperationException("r" + String.valueOf(f.getType()));
+                        }
+                    }
+                }
+            } while ((clazz = clazz.getSuperclass()) != null);
+            return instance;
+        }
+
+        public static class Setters {
+            public static void set(Object o, String fieldName, int value) throws NoSuchFieldException {
+                Field f = o.getClass().getDeclaredField(fieldName);
+                getUnsafe().putInt(o, getUnsafe().objectFieldOffset(f), value);
+            }
+
+            public static void set(Object o, String fieldName, long value) throws NoSuchFieldException {
+                Field f = o.getClass().getDeclaredField(fieldName);
+                getUnsafe().putLong(o, getUnsafe().objectFieldOffset(f), value);
+            }
+
+
+            public static void set(Object o, String fieldName, byte value) throws NoSuchFieldException {
+                Field f = o.getClass().getDeclaredField(fieldName);
+                getUnsafe().putByte(o, getUnsafe().objectFieldOffset(f), value);
+            }
+
+            public static void set(Object o, String fieldName, char value) throws NoSuchFieldException {
+                Field f = o.getClass().getDeclaredField(fieldName);
+                getUnsafe().putChar(o, getUnsafe().objectFieldOffset(f), value);
+            }
+
+            public static void set(Object o, String fieldName, short value) throws NoSuchFieldException {
+                Field f = o.getClass().getDeclaredField(fieldName);
+                getUnsafe().putShort(o, getUnsafe().objectFieldOffset(f), value);
+            }
+
+            public static void set(Object o, String fieldName, Object value) throws NoSuchFieldException {
+                Field f = o.getClass().getDeclaredField(fieldName);
+                getUnsafe().putObject(o, getUnsafe().objectFieldOffset(f), value);
+            }
+        }
+
+        public static class Getters {
+
+        }
 
     }
 
@@ -272,6 +349,35 @@ public class Unsafe {
                     "address=" + address +
                     '}';
         }
+    }
+
+    private static final class AllocatedChunk {
+            Pointer p;
+            Size s;
+
+        AllocatedChunk(Pointer p, Size s) {
+            this.p = p;
+            this.s = s;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            AllocatedChunk that = (AllocatedChunk) o;
+
+            if (!java.util.Objects.equals(p, that.p)) return false;
+            return java.util.Objects.equals(s, that.s);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = p != null ? p.hashCode() : 0;
+            result = 31 * result + (s != null ? s.hashCode() : 0);
+            return result;
+        }
+
     }
 
 }

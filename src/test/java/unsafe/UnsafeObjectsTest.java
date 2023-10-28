@@ -1,7 +1,9 @@
 package unsafe;
 
 import com.nixiedroid.unsafe.Unsafe;
+import com.nixiedroid.unsafe.samples.animal.Lion;
 import org.junit.jupiter.api.Test;
+import com.nixiedroid.unsafe.samples.Person;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -64,6 +66,29 @@ class UnsafeObjectsTest {
     }
 
     @Test
+    void serialiseTest(){
+        int containerSize = (int) Unsafe.Objects.sizeOf(Lion.class);
+        Unsafe.Pointer address = Unsafe.Memory.malloc(containerSize);
+        Lion c1 = new Lion(10, 10000L);
+        Lion c2 = new Lion(5, 1254L);
+        Lion newC1 = null;
+        Lion newC2 = null;
+        try {
+            Unsafe.Objects.place(c1, address.address());
+            Unsafe.Objects.place(c2, address.address() + containerSize);
+
+           newC1 = (Lion) Unsafe.Objects.read(Lion.class, address.address());
+           newC2 = (Lion) Unsafe.Objects.read(Lion.class, address.address() + containerSize);
+        } catch (Exception e) {
+            fail("Should not have thrown any exception: \n " + e);
+        }
+        assertNotNull(newC1);
+        assertNotNull(newC2);
+        assertEquals(c1, newC1);
+        assertEquals(c2, newC2);
+    }
+
+    @Test
     public void createInstanceWithoutConstructor() {
         Person p = null;
         try {
@@ -90,30 +115,6 @@ class UnsafeObjectsTest {
         assertEquals(40,Unsafe.Objects.sizeOf(p));
         assertEquals(40,Unsafe.Objects.sizeOf(p));
     }
-    static class Animnal {
 
-    }
-    static class Person {
-        static int somethingUndiscovered = 96;
-        final String name = "Tom";
-        final int amountOfChildren = 2;
-        final boolean isLikesDogs = true;
-        String surname;
-        int age;
-        int amountOfDogs = 3;
-        int amountOfCats;
-        boolean isLikesCats = true;
 
-        {
-            amountOfCats = 4;
-        }
-
-        public Person(int age, String surname) {
-            this.age = age;
-            this.surname = surname;
-        }
-        public int getSum() {
-            return age + amountOfCats + amountOfDogs + amountOfChildren;
-        }
-    }
 }
