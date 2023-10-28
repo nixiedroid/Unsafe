@@ -1,6 +1,5 @@
 package com.nixiedroid.unsafe;
 
-import com.nixiedroid.unsafe.type.Pointer;
 import com.nixiedroid.unsafe.type.Size;
 
 import java.lang.reflect.Constructor;
@@ -19,11 +18,13 @@ public class Unsafe {
             Field field = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
             field.setAccessible(true);
             unsafe = (sun.misc.Unsafe) field.get(null);
+            field.setAccessible(false);
         } catch (NoSuchFieldException e) {
             try {
                 Constructor<sun.misc.Unsafe> unsafeConstructor = sun.misc.Unsafe.class.getDeclaredConstructor();
                 unsafeConstructor.setAccessible(true);
                 unsafe = unsafeConstructor.newInstance();
+                unsafeConstructor.setAccessible(false);
             } catch (Exception ex) {
                 throw new RuntimeException(e + " : " + ex);
             }
@@ -71,15 +72,13 @@ public class Unsafe {
      *
      * @param e Exception to be thrown
      */
-    public static void throwException(Exception e) {
+    public static void throwException(Throwable e) {
         getUnsafe().throwException(e);
     }
 
     public static int getPointerSize() {
         return getUnsafe().addressSize();
     }
-
-
 
     public static class Memory {
         private Memory() {
@@ -175,25 +174,61 @@ public class Unsafe {
         }
     }
 
-
     public static class Objects {
         private Objects() {
             Util.throwUtilityClassException();
         }
+
         public static int getArrayOffset(Class<?> arrayClass) {
             return getUnsafe().arrayBaseOffset(arrayClass);
         }
 
         /**
          * @param <T> clazz
-         * Allocates an instance but does not run any constructor.
-         * Initializes the class if it has not yet been.
+         *            Allocates an instance but does not run any constructor.
+         *            Initializes the class if it has not yet been.
          * @return instance of class {@link T}
          */
         public static <T> T createDummyInstance(Class<T> clazz) throws InstantiationException {
-           return clazz.cast(getUnsafe().allocateInstance(clazz));
+            return clazz.cast(getUnsafe().allocateInstance(clazz));
         }
 
+
+    }
+
+    public static final class Pointer {
+        private final long address;
+
+        private Pointer(long address) {
+            if (address == 0) throw new NullPointerException("Pointer is ACTUALLY null");
+            this.address = address;
+        }
+
+        public static void validate(Pointer p) {
+            if (p == null) throw new IllegalArgumentException("Pointer is null");
+            if (p.address() == 0) throw new IllegalArgumentException("Pointer address is null");
+        }
+
+        public long address() {
+            return address;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return super.equals(o);
+        }
+
+        @Override
+        public int hashCode() {
+            return super.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "Pointer{" +
+                    "address=" + address +
+                    '}';
+        }
     }
 
 }

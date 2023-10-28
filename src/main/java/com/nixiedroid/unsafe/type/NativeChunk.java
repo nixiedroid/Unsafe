@@ -1,8 +1,9 @@
 package com.nixiedroid.unsafe.type;
 
 import com.nixiedroid.unsafe.Unsafe;
+import com.nixiedroid.unsafe.Unsafe.Pointer;
 
-public class NativeChunk {
+public final  class NativeChunk {
     private final int size;
     private final Pointer address;
     private boolean isFreed = false;
@@ -62,7 +63,7 @@ public class NativeChunk {
         isFreed = true;
         Unsafe.Memory.calloc(address);
     }
-    public static class Window{
+    public static final  class Window{
         private Window(){
             throw new UnsupportedOperationException("You shall not create instance of this");
         }

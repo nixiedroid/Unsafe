@@ -20,17 +20,18 @@ public class Util {
         }
     }
 
+    private static void performGcHalting(){
+        Object o = new Object();
+        WeakReference<Object> ref = new WeakReference<>(o);
+        o = null;
+        while (ref.get() != null) {
+            System.gc();
+        }
+    }
+
     @SuppressWarnings("UnusedAssignment")
     public static synchronized void performGc() {
-        new Thread(() -> {
-            Object o = new Object();
-            WeakReference<Object> ref = new WeakReference<>(o);
-            o = null;
-            while (ref.get() != null) {
-                System.gc();
-            }
-            System.out.println("Garbage collector finished");
-        }).start();
+        new Thread(Util::performGcHalting).start();
     }
 
     public static void print(byte data) {
@@ -51,10 +52,12 @@ public class Util {
 
     public static String toString(byte[] data) {
         StringBuilder out = new StringBuilder();
-        for (byte b : data) {
-            out.append(String.format("%02x", b & 0xFF));
+        for (int i = 0; i < data.length-1; i++) {
+            out.append(String.format("%02x", data[i] & 0xFF));
+            out.append(", ");
         }
-        return out + "\n";
+        out.append(String.format("%02x", data[data.length-1] & 0xFF));
+        return out.toString();
     }
 
     public static void throwUtilityClassException() {

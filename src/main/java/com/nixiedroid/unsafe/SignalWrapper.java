@@ -2,7 +2,7 @@ package com.nixiedroid.unsafe;
 
 import sun.misc.Signal;
 
-public class SignalWrapper {
+public final class SignalWrapper {
     private SignalWrapper() {
         Util.throwUtilityClassException();
     }

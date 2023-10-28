@@ -1,9 +1,11 @@
+package unsafe.type;
+
 import com.nixiedroid.unsafe.type.NativeChunk;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class NativeChunkTest {
+class NativeChunkTest {
 
     static byte validValue = (byte) 42;
     static int size = 4;
